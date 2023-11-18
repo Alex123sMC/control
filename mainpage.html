@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Webhook Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #webhookUrlInput {
+            margin-bottom: 10px;
+            padding: 5px;
+            font-size: 14px;
+            width: 300px;
+        }
+        #confirmButton {
+            padding: 7px;
+            font-size: 14px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #conversation {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #sendMessageForm {
+            display: flex;
+            gap: 10px;
+        }
+        #messageInput {
+            flex-grow: 1;
+            padding: 5px;
+            font-size: 14px;
+        }
+        #sendButton {
+            padding: 7px;
+            font-size: 14px;
+            background-color: #2ecc71;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #backButton {
+            padding: 7px;
+            font-size: 14px;
+            background-color: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <label for="webhookUrlInput">Webhook URL:</label>
+    <input type="text" id="webhookUrlInput" placeholder="Enter Discord Webhook URL">
+    <button id="confirmButton">Confirm</button>
+    
+    <div id="conversation"></div>
+
+    <form id="sendMessageForm">
+        <input type="text" id="messageInput" placeholder="Type your message">
+        <button type="button" id="sendButton">Send Message</button>
+    </form>
+
+    <button id="backButton">Back</button>
+
+    <script>
+        let webhookURL = null;
+
+        const webhookUrlInput = document.getElementById('webhookUrlInput');
+        const confirmButton = document.getElementById('confirmButton');
+        const conversationDiv = document.getElementById('conversation');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const backButton = document.getElementById('backButton');
+
+        confirmButton.addEventListener('click', loadConversation);
+        sendButton.addEventListener('click', sendMessage);
+        backButton.addEventListener('click', goBack);
+
+        function loadConversation() {
+            webhookURL = webhookUrlInput.value.trim();
+
+            if (!webhookURL) {
+                alert('Please enter a valid Discord Webhook URL.');
+                return;
+            }
+
+            // Check if the kick button is pressed on passmanagementO436JNngdd.html
+            const isKicked = localStorage.getItem('isKicked') === 'true';
+            if (isKicked) {
+                goBack();
+                return;
+            }
+
+            // Check if lockdown is active on passmanagementO436JNngdd.html
+            const lockdownEnabled = localStorage.getItem('lockdownEnabled') === 'true';
+            if (lockdownEnabled) {
+                window.location.href = 'error.html';
+                return;
+            }
+
+            fetch(webhookURL, { method: 'GET' })
+                .then(response => response.json())
+                .then(data => displayConversation(data))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function displayConversation(messages) {
+            conversationDiv.innerHTML = '';
+
+            messages.forEach(message => {
+                const messageDiv = document.createElement('div');
+                messageDiv.innerText = `[${message.timestamp}] ${message.author.username}: ${message.content}`;
+                conversationDiv.appendChild(messageDiv);
+            });
+        }
+
+        function sendMessage() {
+            const messageContent = messageInput.value.trim();
+
+            if (!webhookURL || messageContent === '') {
+                alert('Please enter a valid Discord Webhook URL and message content.');
+                return;
+            }
+
+            const payload = {
+                content: messageContent
+            };
+
+            fetch(webhookURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                messageInput.value = '';
+                loadConversation();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function goBack() {
+            // Redirect to loginpage.html
+            window.location.href = 'loginpage.html';
+        }
+
+        // Periodically check for kick and lockdown conditions
+        setInterval(() => {
+            const isKicked = localStorage.getItem('isKicked') === 'true';
+            if (isKicked) {
+                goBack();
+            }
+
+            const lockdownEnabled = localStorage.getItem('lockdownEnabled') === 'true';
+            if (lockdownEnabled) {
+                window.location.href = 'error.html';
+            }
+        }, 1000); // Check every second
+    </script>
+
+</body>
+</html>

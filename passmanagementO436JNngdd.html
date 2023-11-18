@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        #passwordsContainer {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #passwordList {
+            margin-bottom: 20px;
+        }
+        .passwordItem {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .copyButton, .removeButton {
+            padding: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        #kickButton, #lockdownToggle, #backButton {
+            padding: 8px;
+            font-size: 16px;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        #newPasswordInput, #newUsernameInput {
+            margin-bottom: 10px;
+            padding: 5px;
+            font-size: 14px;
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="passwordsContainer">
+        <h2>Current Passwords</h2>
+        <ul id="passwordList"></ul>
+
+        <div>
+            <input type="text" id="newUsernameInput" placeholder="Enter new username">
+            <input type="text" id="newPasswordInput" placeholder="Enter new password">
+        </div>
+
+        <button id="kickButton">Kick Users</button>
+        <input type="checkbox" id="lockdownToggle"> Lockdown
+        <button id="backButton">Back</button>
+
+        <script>
+            // Function to create a copy button
+            function createCopyButton(password) {
+                const copyButton = document.createElement('button');
+                copyButton.className = 'copyButton';
+                copyButton.innerText = 'Copy';
+                copyButton.addEventListener('click', () => {
+                    // Copy password to clipboard
+                    navigator.clipboard.writeText(password)
+                        .then(() => {
+                            alert('Password copied to clipboard!');
+                        })
+                        .catch((err) => {
+                            console.error('Unable to copy to clipboard', err);
+                        });
+                });
+                return copyButton;
+            }
+
+            // Function to create a remove button
+            function createRemoveButton(type) {
+                const removeButton = document.createElement('button');
+                removeButton.className = 'removeButton';
+                removeButton.innerText = 'Remove';
+                removeButton.addEventListener('click', () => {
+                    // Remove password from the list
+                    delete passwords[type];
+
+                    // Save passwords in localStorage
+                    localStorage.setItem('passwords', JSON.stringify(passwords));
+
+                    // Display updated password list
+                    loadPasswords();
+                });
+                return removeButton;
+            }
+
+            // Display current passwords
+            const passwordList = document.getElementById('passwordList');
+            const passwords = JSON.parse(localStorage.getItem('passwords')) || {};
+
+            function loadPasswords() {
+                passwordList.innerHTML = '';
+
+                for (const type in passwords) {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'passwordItem';
+                    
+                    const passwordInfo = document.createElement('div');
+                    passwordInfo.innerText = `Type ${type}: Password: ${passwords[type].password}`;
+
+                    // Display name if available
+                    if (passwords[type].name) {
+                        passwordInfo.innerText += `, Username: ${passwords[type].name}`;
+                    }
+
+                    // Append copy and remove buttons
+                    listItem.appendChild(passwordInfo);
+                    listItem.appendChild(createCopyButton(passwords[type].password));
+                    listItem.appendChild(createRemoveButton(type));
+
+                    passwordList.appendChild(listItem);
+                }
+            }
+
+            // Event listener for the kick button
+            const kickButton = document.getElementById('kickButton');
+            kickButton.addEventListener('click', () => {
+                // Redirect everyone from mainpage.html to loginpage.html
+                window.location.href = 'loginpage.html';
+            });
+
+            // Event listener for the lockdown toggle
+            const lockdownToggle = document.getElementById('lockdownToggle');
+            lockdownToggle.addEventListener('change', () => {
+                const isChecked = lockdownToggle.checked;
+                // Save the state in localStorage
+                localStorage.setItem('lockdownEnabled', isChecked);
+
+                if (isChecked) {
+                    // Redirect everyone on mainpage.html to error.html
+                    if (window.location.href.includes('mainpage.html')) {
+                        window.location.href = 'error.html';
+                    }
+                } else {
+                    // Redirect everyone from error.html to loginpage.html
+                    if (window.location.href.includes('error.html')) {
+                        window.location.href = 'loginpage.html';
+                    }
+                }
+            });
+
+            // Event listener for the back button
+            const backButton = document.getElementById('backButton');
+            backButton.addEventListener('click', () => {
+                // Redirect back to loginpage.html
+                window.location.href = 'loginpage.html';
+            });
+
+            // Event listener for the new password and username input
+            const newPasswordInput = document.getElementById('newPasswordInput');
+            const newUsernameInput = document.getElementById('newUsernameInput');
+            newPasswordInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    const newPassword = newPasswordInput.value.trim();
+                    const newUsername = newUsernameInput.value.trim();
+                    if (newPassword && newUsername) {
+                        const newPasswordType = Object.keys(passwords).length + 1;
+
+                        passwords[newPasswordType] = {
+                            password: newPassword,
+                            name: newUsername,
+                        };
+
+                        // Save passwords in localStorage
+                        localStorage.setItem('passwords', JSON.stringify(passwords));
+
+                        // Clear input
+                        newPasswordInput.value = '';
+                        newUsernameInput.value = '';
+
+                        // Display updated password list
+                        loadPasswords();
+                    }
+                }
+            });
+
+            // Initial display of passwords
+            loadPasswords();
+
+            // Set initial state for lockdown toggle
+            const isLockdownEnabled = localStorage.getItem('lockdownEnabled') === 'true';
+            lockdownToggle.checked = isLockdownEnabled;
+
+            // Check and redirect based on initial lockdown state
+            if (isLockdownEnabled && window.location.href.includes('mainpage.html')) {
+                window.location.href = 'error.html';
+            }
+        </script>
+    </div>
+
+</body>
+</html>

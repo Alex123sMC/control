@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        #errorContainer {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #retryButton {
+            padding: 8px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="errorContainer">
+        <h2>Error</h2>
+        <p>This site has been temporarily disabled.</p>
+        <button id="retryButton">Retry</button>
+    </div>
+
+    <script>
+        // Check if lockdown is disabled
+        const isLockdownEnabled = JSON.parse(localStorage.getItem('lockdownEnabled')) || false;
+
+        // Retry button click event
+        document.getElementById('retryButton').addEventListener('click', function () {
+            // Redirect to loginpage.html on retry
+            window.location.href = 'loginpage.html';
+        });
+
+        if (!isLockdownEnabled) {
+            // Redirect to loginpage.html if lockdown is disabled
+            window.location.href = 'loginpage.html';
+        }
+    </script>
+
+</body>
+</html>
